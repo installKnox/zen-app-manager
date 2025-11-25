@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <b>A minimal, modern, and efficient startup application manager.</b>
+  <b>The easiest way to manage your startup apps on Linux & Windows.</b>
 </p>
 
 <p align="center">
@@ -17,55 +17,55 @@
 
 ---
 
-**Zen App Manager** gives you full control over which applications start automatically when you log in. Built with Tauri and Rust, it offers a lightweight, fast, and aesthetically pleasing experience with a focus on simplicity and performance.
+**Zen App Manager** is designed for everyone. Whether you are a Linux beginner or a power user, managing which applications start when you turn on your computer shouldn't be complicated. 
+
+Say goodbye to complex terminal commands or hidden configuration files. With Zen App Manager, you get a beautiful, modern interface to take control of your startup routine.
 
 ## Features
 
-*   **Manage Startup Apps:** Easily list, enable, or disable startup applications.
-*   **Add Custom Apps:** Add any command or application to your startup list with a simple interface.
-*   **Clean & Safe:** Remove unwanted entries safely.
-*   **Modern UI:** A sleek, dark-themed interface designed for modern desktops.
-*   **Blazing Fast:** Built with Rust for minimal resource usage.
-*   **Cross-Platform:** Primarily designed for Linux (Flatpak support), with experimental Windows support available.
+*   **✨ Beginner Friendly:** Simple, intuitive interface. No coding or terminal knowledge required.
+*   **🚀 Boost Boot Time:** Easily disable unwanted apps that slow down your startup.
+*   **➕ Add Anything:** Add your favorite apps or custom commands to startup with just a few clicks.
+*   **🎨 Beautiful Design:** A sleek, modern dark-themed UI that looks great on any desktop.
+*   **⚡ Lightweight:** Built with Rust, so it uses almost no system resources.
+*   **🔒 Safe & Secure:** Available as a sandboxed Flatpak for maximum security.
 
 ## Screenshots
 
 ![Main Interface](screenshots/main.png)
-*(Screenshot of the application running)*
+*(A clean and simple interface to manage your apps)*
 
 ## Installation
 
-### Linux (Flathub)
+### 🐧 Linux (Recommended)
 
-Zen App Manager is available on Flathub. You can install it with a single command:
+The easiest way to install on Linux is via **Flathub**. It works on almost any Linux distribution (Ubuntu, Fedora, Arch, Mint, etc.).
 
 ```bash
 flatpak install flathub com.zen.zen-app-manager
 ```
 
-### Windows (Experimental)
+### 🪟 Windows
 
-Windows support is currently in **beta**. You can build the installer from source:
+We support Windows too! You don't need to install anything complex.
 
-1.  Ensure you have Rust and Node.js installed.
-2.  Run the build command:
-    ```bash
-    npm run tauri build
-    ```
-3.  The installer (`.exe`) will be located in `src-tauri/target/release/bundle/nsis/`.
+1.  Go to the **[Releases Page](https://github.com/d0ksan8/zen-app-manager/releases/latest)**.
+2.  Download the latest `.exe` file (e.g., `Zen-App-Manager_x.x.x_x64-setup.exe`).
+3.  Double click to install. That's it!
 
-### Prerequisites
+---
 
-To build from source, you need:
-- **Node.js** (v18 or later)
-- **Rust** (install from [rustup.rs](https://rustup.rs))
-- **System dependencies:**
-  - Linux: `webkit2gtk-4.1`, `libgtk-3-dev`
-  - Windows: Visual Studio Build Tools
+### 🛠️ Building from Source (Advanced)
 
-### Building from Source
+If you are a developer or want to build it yourself:
 
-To build the application manually:
+**Prerequisites:**
+- **Node.js** (v18+)
+- **Rust** (via [rustup.rs](https://rustup.rs))
+- **Linux:** `webkit2gtk-4.1`, `libgtk-3-dev`
+- **Windows:** Visual Studio Build Tools
+
+**Build Steps:**
 
 1.  Clone the repository:
     ```bash
@@ -73,7 +73,7 @@ To build the application manually:
     cd zen-app-manager
     ```
 
-2.  Install dependencies and build:
+2.  Install and build:
     ```bash
     npm install
     npm run tauri build
