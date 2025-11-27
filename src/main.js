@@ -15,9 +15,14 @@ document.getElementById('titlebar-close').addEventListener('click', () => appWin
 const themeToggleBtn = document.getElementById('theme-toggle');
 const savedTheme = localStorage.getItem('theme');
 
+// Only apply AMOLED mode if explicitly saved, default is light mode
 if (savedTheme === 'amoled') {
   document.body.classList.add('amoled-mode');
   themeToggleBtn.textContent = '☀️';
+} else {
+  // Ensure we start in default mode
+  document.body.classList.remove('amoled-mode');
+  themeToggleBtn.textContent = '🌙';
 }
 
 themeToggleBtn.onclick = () => {
