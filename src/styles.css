@@ -10,8 +10,8 @@
   --primary-color: #090979;
   --accent-color: #3b82f6;
   --text-color: #f1f5f9;
-  --card-bg: #1e293b;
-  --card-hover: rgba(255, 255, 255, 0.1);
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --card-hover: rgba(255, 255, 255, 0.08);
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
   --title-font: 'StackSansNotch-VariableFont', 'Inter', sans-serif;
   --danger-color: #ef4444;
@@ -133,6 +133,8 @@ main {
 
 .app-card {
   background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 1.5rem;
