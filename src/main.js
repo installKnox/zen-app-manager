@@ -187,6 +187,9 @@ function renderServices(services) {
   const serviceListEl = document.getElementById("service-list");
   serviceListEl.innerHTML = "";
 
+  // Use a DocumentFragment to minimize reflows/repaints
+  const fragment = document.createDocumentFragment();
+
   services.forEach(service => {
     const card = document.createElement("div");
     card.className = "app-card";
@@ -241,8 +244,10 @@ function renderServices(services) {
     card.appendChild(info);
     card.appendChild(actions);
 
-    serviceListEl.appendChild(card);
+    fragment.appendChild(card);
   });
+
+  serviceListEl.appendChild(fragment);
 }
 
 async function toggleApp(path, enabled) {
