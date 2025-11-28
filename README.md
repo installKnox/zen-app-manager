@@ -35,7 +35,10 @@ Say goodbye to complex terminal commands or hidden configuration files. With Zen
 ## Screenshots
 
 ![Main Interface](screenshots/main.png)
-*(A clean and simple interface to manage your apps)*
+*(Startup Apps Management)*
+
+![System Services](screenshots/main2.png)
+*(System Services Management)*
 
 ## Installation
 
