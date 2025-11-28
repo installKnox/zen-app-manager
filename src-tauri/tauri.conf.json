@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "zen-app-manager",
-  "version": "0.2.2",
-  "identifier": "com.zen.zen-app-manager",
+  "version": "0.3.0",
+  "identifier": "io.github.d0ksan8.zen-app-manager",
   "build": {
     "frontendDist": "../src"
   },

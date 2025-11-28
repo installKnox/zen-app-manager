@@ -4,11 +4,6 @@ Here are the features and improvements planned for future releases of Zen App Ma
 
 ## 🚀 Upcoming Features
 
-- [ ] **Systemd Service Management (Advanced Mode)**
-    - Allow users to view and manage system-level services (systemd).
-    - This will likely require root/admin privileges and will be separated into an "Advanced" section to prevent accidental system changes.
-    - *Note: This feature might be limited in the Flatpak version due to sandbox restrictions.*
-
 - [ ] **Multi-Language Support (i18n)**
     - Add support for multiple languages (Turkish, Spanish, German, etc.) in the UI.
 
@@ -17,6 +12,7 @@ Here are the features and improvements planned for future releases of Zen App Ma
 
 ## ✅ Completed
 
+- [x] **Systemd Service Management** (Linux Only)
 - [x] Basic Startup Management (Enable/Disable)
 - [x] Add New Apps via File Picker
 - [x] Windows Registry Support

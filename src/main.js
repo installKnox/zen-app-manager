@@ -152,6 +152,99 @@ function renderApps(apps) {
   });
 }
 
+// Tab Switching
+const tabs = document.querySelectorAll('.tab-btn');
+const views = document.querySelectorAll('.view-content');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    views.forEach(v => v.style.display = 'none');
+
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    document.getElementById(`${target}-view`).style.display = 'block';
+
+    if (target === 'services') {
+      loadServices();
+    }
+  });
+});
+
+async function loadServices() {
+  const serviceListEl = document.getElementById("service-list");
+  serviceListEl.innerHTML = "<p>Loading services...</p>";
+
+  try {
+    const services = await invoke("get_system_services");
+    renderServices(services);
+  } catch (error) {
+    serviceListEl.innerHTML = `<p style="color: red;">Error: ${error}</p>`;
+  }
+}
+
+function renderServices(services) {
+  const serviceListEl = document.getElementById("service-list");
+  serviceListEl.innerHTML = "";
+
+  services.forEach(service => {
+    const card = document.createElement("div");
+    card.className = "app-card";
+
+    const info = document.createElement("div");
+    info.className = "app-info";
+
+    const name = document.createElement("div");
+    name.className = "app-name";
+    name.textContent = service.name;
+
+    const meta = document.createElement("div");
+    meta.className = "app-meta";
+
+    const stateBadge = document.createElement("span");
+    stateBadge.className = "meta-badge";
+    stateBadge.textContent = service.state;
+    stateBadge.style.color = service.state === 'enabled' ? '#22c55e' : '#94a3b8';
+
+    meta.appendChild(stateBadge);
+
+    info.appendChild(name);
+    info.appendChild(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "app-actions";
+
+    const switchLabel = document.createElement("label");
+    switchLabel.className = "switch";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = service.state === 'enabled';
+    input.onchange = async () => {
+      try {
+        await invoke("toggle_service", { name: service.name, enable: input.checked });
+        // Refresh to confirm state
+        loadServices();
+      } catch (err) {
+        alert("Failed to toggle service: " + err);
+        input.checked = !input.checked; // Revert
+      }
+    };
+
+    const slider = document.createElement("span");
+    slider.className = "slider";
+
+    switchLabel.appendChild(input);
+    switchLabel.appendChild(slider);
+
+    actions.appendChild(switchLabel);
+    card.appendChild(info);
+    card.appendChild(actions);
+
+    serviceListEl.appendChild(card);
+  });
+}
+
 async function toggleApp(path, enabled) {
   try {
     await invoke("toggle_app", { path, enable: enabled });

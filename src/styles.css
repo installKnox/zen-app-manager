@@ -6,14 +6,55 @@
 }
 
 :root {
-  --bg-color: #020024;
+  --bg-color: #0f172a;
   --primary-color: #090979;
-  --accent-color: #00D4FF;
-  --text-color: #ffffff;
-  --card-bg: rgba(255, 255, 255, 0.05);
+  --accent-color: #3b82f6;
+  --text-color: #f1f5f9;
+  --card-bg: #1e293b;
   --card-hover: rgba(255, 255, 255, 0.1);
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
   --title-font: 'StackSansNotch-VariableFont', 'Inter', sans-serif;
+  --danger-color: #ef4444;
+  --success-color: #22c55e;
+  --warning-color: #f59e0b;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0.8rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: var(--text-color);
+}
+
+.tab-btn.active {
+  color: var(--accent-color);
+  border-bottom-color: var(--accent-color);
+}
+
+.warning-text {
+  color: var(--warning-color);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 body {
