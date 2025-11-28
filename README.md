@@ -48,7 +48,7 @@ Say goodbye to complex terminal commands or hidden configuration files. With Zen
 The easiest way to install on Linux is via **Flathub**. It works on almost any Linux distribution (Ubuntu, Fedora, Arch, Mint, etc.).
 
 ```bash
-flatpak install flathub com.zen.zen-app-manager
+flatpak install flathub io.github.d0ksan8.zen-app-manager
 ```
 
 ### Windows
