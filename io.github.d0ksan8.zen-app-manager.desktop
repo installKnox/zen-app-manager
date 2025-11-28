@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Zen App Manager
+Comment=Manage your startup applications
+Exec=zen-app-manager
+Icon=io.github.d0ksan8.zen-app-manager
+Terminal=false
+Categories=Utility;Settings;
+Keywords=startup;autostart;systemd;boot;
+StartupNotify=true
