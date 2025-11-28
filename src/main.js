@@ -187,67 +187,79 @@ function renderServices(services) {
   const serviceListEl = document.getElementById("service-list");
   serviceListEl.innerHTML = "";
 
-  // Use a DocumentFragment to minimize reflows/repaints
-  const fragment = document.createDocumentFragment();
+  const CHUNK_SIZE = 50;
+  let index = 0;
 
-  services.forEach(service => {
-    const card = document.createElement("div");
-    card.className = "app-card";
+  function renderChunk() {
+    const chunk = services.slice(index, index + CHUNK_SIZE);
+    const fragment = document.createDocumentFragment();
 
-    const info = document.createElement("div");
-    info.className = "app-info";
+    chunk.forEach(service => {
+      const card = document.createElement("div");
+      card.className = "app-card";
 
-    const name = document.createElement("div");
-    name.className = "app-name";
-    name.textContent = service.name;
+      const info = document.createElement("div");
+      info.className = "app-info";
 
-    const meta = document.createElement("div");
-    meta.className = "app-meta";
+      const name = document.createElement("div");
+      name.className = "app-name";
+      name.textContent = service.name;
 
-    const stateBadge = document.createElement("span");
-    stateBadge.className = "meta-badge";
-    stateBadge.textContent = service.state;
-    stateBadge.style.color = service.state === 'enabled' ? '#22c55e' : '#94a3b8';
+      const meta = document.createElement("div");
+      meta.className = "app-meta";
 
-    meta.appendChild(stateBadge);
+      const stateBadge = document.createElement("span");
+      stateBadge.className = "meta-badge";
+      stateBadge.textContent = service.state;
+      stateBadge.style.color = service.state === 'enabled' ? '#22c55e' : '#94a3b8';
 
-    info.appendChild(name);
-    info.appendChild(meta);
+      meta.appendChild(stateBadge);
 
-    const actions = document.createElement("div");
-    actions.className = "app-actions";
+      info.appendChild(name);
+      info.appendChild(meta);
 
-    const switchLabel = document.createElement("label");
-    switchLabel.className = "switch";
+      const actions = document.createElement("div");
+      actions.className = "app-actions";
 
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.checked = service.state === 'enabled';
-    input.onchange = async () => {
-      try {
-        await invoke("toggle_service", { name: service.name, enable: input.checked });
-        // Refresh to confirm state
-        loadServices();
-      } catch (err) {
-        alert("Failed to toggle service: " + err);
-        input.checked = !input.checked; // Revert
-      }
-    };
+      const switchLabel = document.createElement("label");
+      switchLabel.className = "switch";
 
-    const slider = document.createElement("span");
-    slider.className = "slider";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = service.state === 'enabled';
+      input.onchange = async () => {
+        try {
+          await invoke("toggle_service", { name: service.name, enable: input.checked });
+          // Refresh to confirm state
+          loadServices();
+        } catch (err) {
+          alert("Failed to toggle service: " + err);
+          input.checked = !input.checked; // Revert
+        }
+      };
 
-    switchLabel.appendChild(input);
-    switchLabel.appendChild(slider);
+      const slider = document.createElement("span");
+      slider.className = "slider";
 
-    actions.appendChild(switchLabel);
-    card.appendChild(info);
-    card.appendChild(actions);
+      switchLabel.appendChild(input);
+      switchLabel.appendChild(slider);
 
-    fragment.appendChild(card);
-  });
+      actions.appendChild(switchLabel);
+      card.appendChild(info);
+      card.appendChild(actions);
 
-  serviceListEl.appendChild(fragment);
+      fragment.appendChild(card);
+    });
+
+    serviceListEl.appendChild(fragment);
+    index += CHUNK_SIZE;
+
+    if (index < services.length) {
+      requestAnimationFrame(renderChunk);
+    }
+  }
+
+  renderChunk();
 }
 
 async function toggleApp(path, enabled) {
