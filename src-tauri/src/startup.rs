@@ -7,9 +7,13 @@ use walkdir::WalkDir;
 pub struct StartupApp {
     pub id: String,
     pub name: String,
-    pub command: String,
+    pub command: String, // This will now hold the CLEAN path, not full command
+    pub full_command: String, // New: Holds the full command with args (for tooltip)
     pub enabled: bool,
     pub path: PathBuf,
+    pub size: String,
+    pub location: String,
+    pub publisher: String,
 }
 
 #[cfg(target_os = "linux")]
@@ -23,23 +27,29 @@ pub fn get_startup_apps() -> Vec<StartupApp> {
                     if let Ok(content) = fs::read_to_string(entry.path()) {
                         let name = extract_value(&content, "Name").unwrap_or_else(|| entry.file_name().to_string_lossy().to_string());
                         let raw_command = extract_value(&content, "Exec").unwrap_or_default();
-                        let command = raw_command
+                        let full_command = raw_command
                             .replace("env GDK_BACKEND=x11 ", "")
                             .replace("env ", "");
+                        
+                        // Extract clean path (first part of command)
+                        let clean_path = full_command.split_whitespace().next().unwrap_or(&full_command).to_string();
+                        let size = get_file_size(std::path::Path::new(&clean_path));
+
                         let hidden = extract_value(&content, "Hidden").map(|v| v.to_lowercase() == "true").unwrap_or(false);
                         let x_gnome_enabled = extract_value(&content, "X-GNOME-Autostart-enabled").map(|v| v.to_lowercase() == "true").unwrap_or(true);
-                        
-                        // If Hidden is true, it's usually disabled or hidden from menu, but for autostart it implies disabled if it's in autostart dir? 
-                        // Actually, in autostart, Hidden=true means it shouldn't start.
                         
                         let enabled = !hidden && x_gnome_enabled;
 
                         apps.push(StartupApp {
                             id: entry.file_name().to_string_lossy().to_string(),
                             name,
-                            command,
+                            command: clean_path, // Show clean path
+                            full_command,        // Keep full command for tooltip
                             enabled,
                             path: entry.path().to_path_buf(),
+                            size,
+                            location: "Startup Folder".to_string(),
+                            publisher: "Linux Desktop Entry".to_string(),
                         });
                     }
                 }
@@ -50,31 +60,119 @@ pub fn get_startup_apps() -> Vec<StartupApp> {
 }
 
 #[cfg(target_os = "windows")]
+use winreg::enums::*;
+#[cfg(target_os = "windows")]
+use winreg::RegKey;
+
+#[cfg(target_os = "windows")]
 pub fn get_startup_apps() -> Vec<StartupApp> {
     let mut apps = Vec::new();
+
+    // 1. Check Startup Folder
     if let Some(startup_dir) = dirs::data_dir().map(|d| d.join("Microsoft\\Windows\\Start Menu\\Programs\\Startup")) {
         if startup_dir.exists() {
             for entry in WalkDir::new(&startup_dir).into_iter().filter_map(|e| e.ok()) {
                 if entry.path().extension().map_or(false, |ext| ext == "lnk" || ext == "bat" || ext == "cmd" || ext == "exe") {
-                    // On Windows, we can't easily parse .lnk files without extra crates, so we'll just use the filename
-                    // and assume it's enabled if it exists in the folder.
+                    // For .lnk, we ideally need to resolve target. Without libs, we use the lnk itself or try to guess.
+                    // Since we can't easily resolve .lnk without 'lnks' crate or similar (which requires C++ libs sometimes),
+                    // we will stick to file size of the shortcut for now OR mark as "Shortcut".
+                    // But user wants actual size.
+                    // Let's try to be honest: "Shortcut" size is misleading.
+                    // If it's a .bat/.cmd/.exe in startup folder, we can get size.
+                    
+                    let is_shortcut = entry.path().extension().map_or(false, |e| e == "lnk");
+                    let size = if is_shortcut {
+                        "Shortcut".to_string() // Honest fallback
+                    } else {
+                        get_file_size(entry.path())
+                    };
+
                     apps.push(StartupApp {
                         id: entry.file_name().to_string_lossy().to_string(),
                         name: entry.file_name().to_string_lossy().replace(".lnk", "").to_string(),
-                        command: entry.path().to_string_lossy().to_string(), // Just show path for now
-                        enabled: true, // If it's in Startup folder, it's enabled
+                        command: entry.path().to_string_lossy().to_string(),
+                        full_command: entry.path().to_string_lossy().to_string(),
+                        enabled: true,
                         path: entry.path().to_path_buf(),
+                        size,
+                        location: "Startup Folder".to_string(),
+                        publisher: "Unknown".to_string(),
                     });
                 }
             }
         }
     }
+
+    // 2. Check Registry (HKCU)
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    if let Ok(run_key) = hkcu.open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Run") {
+        for (name, value) in run_key.enum_values().filter_map(|x| x.ok()) {
+            let full_command = value.to_string();
+            // Clean path: remove quotes and args
+            let clean_path_str = full_command.split('"').nth(1).unwrap_or(&full_command).split_whitespace().next().unwrap_or(&full_command).to_string();
+            let clean_path = PathBuf::from(&clean_path_str);
+            
+            let size = if clean_path.exists() { get_file_size(&clean_path) } else { "Unknown".to_string() };
+
+            apps.push(StartupApp {
+                id: name.clone(),
+                name: name.clone(),
+                command: clean_path_str,
+                full_command: full_command.clone(),
+                enabled: true,
+                path: PathBuf::from(format!("REGISTRY::HKCU::{}", name)),
+                size,
+                location: "Registry (HKCU)".to_string(),
+                publisher: "Unknown".to_string(),
+            });
+        }
+    }
+
+    // 3. Check Registry (HKLM)
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    if let Ok(run_key) = hklm.open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Run") {
+        for (name, value) in run_key.enum_values().filter_map(|x| x.ok()) {
+            let full_command = value.to_string();
+            let clean_path_str = full_command.split('"').nth(1).unwrap_or(&full_command).split_whitespace().next().unwrap_or(&full_command).to_string();
+            let clean_path = PathBuf::from(&clean_path_str);
+            
+            let size = if clean_path.exists() { get_file_size(&clean_path) } else { "Unknown".to_string() };
+
+            apps.push(StartupApp {
+                id: name.clone(),
+                name: name.clone(),
+                command: clean_path_str,
+                full_command: full_command.clone(),
+                enabled: true,
+                path: PathBuf::from(format!("REGISTRY::HKLM::{}", name)),
+                size,
+                location: "Registry (HKLM)".to_string(),
+                publisher: "System".to_string(),
+            });
+        }
+    }
+
     apps
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "windows")))]
 pub fn get_startup_apps() -> Vec<StartupApp> {
     Vec::new()
+}
+
+fn get_file_size(path: &std::path::Path) -> String {
+    if let Ok(metadata) = fs::metadata(path) {
+        let bytes = metadata.len();
+        if bytes < 1024 {
+            format!("{} B", bytes)
+        } else if bytes < 1024 * 1024 {
+            format!("{:.1} KB", bytes as f64 / 1024.0)
+        } else {
+            format!("{:.1} MB", bytes as f64 / (1024.0 * 1024.0))
+        }
+    } else {
+        "Unknown".to_string()
+    }
 }
 
 fn extract_value(content: &str, key: &str) -> Option<String> {
@@ -92,9 +190,6 @@ fn extract_value(content: &str, key: &str) -> Option<String> {
 
 #[cfg(target_os = "linux")]
 pub fn toggle_app(path: PathBuf, enable: bool) -> Result<(), String> {
-    // To disable, we can set Hidden=true or X-GNOME-Autostart-enabled=false
-    // Standard way is Hidden=true
-    
     let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
     let mut new_lines = Vec::new();
     let mut hidden_found = false;
@@ -113,7 +208,6 @@ pub fn toggle_app(path: PathBuf, enable: bool) -> Result<(), String> {
     if !hidden_found {
         new_lines.push(format!("Hidden={}", !enable));
     }
-    // We don't strictly need to add X-GNOME-Autostart-enabled if not present, but Hidden is standard.
 
     fs::write(path, new_lines.join("\n")).map_err(|e| e.to_string())?;
     Ok(())
@@ -121,17 +215,25 @@ pub fn toggle_app(path: PathBuf, enable: bool) -> Result<(), String> {
 
 #[cfg(target_os = "windows")]
 pub fn toggle_app(path: PathBuf, enable: bool) -> Result<(), String> {
-    // On Windows Startup folder, "disabling" usually means moving it to a "disabled" folder or deleting it.
-    // But for simplicity and safety, we might just append ".disabled" to the filename or similar.
-    // However, a better approach for a simple manager is to just delete/create.
-    // But the user asked for toggle.
-    // Let's implement a simple rename strategy: app.lnk -> app.lnk.disabled
+    let path_str = path.to_string_lossy().to_string();
     
+    // Handle Registry Entries
+    if path_str.starts_with("REGISTRY::") {
+        // Registry toggling is complex (requires deleting/re-adding value).
+        // For now, let's return an error or implement a simple "delete to disable" logic later.
+        // Or we can move it to a "RunOnce" or similar, but standard way is deleting.
+        // User asked for toggle.
+        // Let's just say "Not supported for Registry yet" or implement delete/add.
+        // Implementing delete/add requires remembering the command.
+        return Err("Toggling Registry apps is not supported yet. Use Delete.".to_string());
+    }
+
+    // Handle Folder Entries (Rename logic)
     let new_path = if enable {
         if path.extension().map_or(false, |e| e == "disabled") {
             path.with_extension("")
         } else {
-            return Ok(()); // Already enabled
+            return Ok(());
         }
     } else {
         let mut p = path.clone().into_os_string();
@@ -156,7 +258,6 @@ pub fn create_app(name: String, command: String, description: String) -> Result<
             fs::create_dir_all(&autostart_dir).map_err(|e| e.to_string())?;
         }
         
-        // Sanitize filename: replace spaces, slashes, backslashes with hyphens
         let safe_name = name.replace(" ", "-").replace("/", "-").replace("\\", "-").to_lowercase();
         let filename = format!("{}.desktop", safe_name);
         let path = autostart_dir.join(filename);
@@ -180,13 +281,10 @@ pub fn create_app(name: String, command: String, _description: String) -> Result
             fs::create_dir_all(&startup_dir).map_err(|e| e.to_string())?;
         }
 
-        // On Windows, creating a shortcut (.lnk) programmatically is hard without extra libs.
-        // We will create a simple .bat file instead.
         let safe_name = name.replace(" ", "-").replace("/", "-").replace("\\", "-").to_lowercase();
         let filename = format!("{}.bat", safe_name);
         let path = startup_dir.join(filename);
         
-        // Simple batch file to start the program
         let content = format!("@echo off\nstart \"\" \"{}\"", command);
         
         fs::write(path, content).map_err(|e| e.to_string())?;
@@ -202,5 +300,24 @@ pub fn create_app(_name: String, _command: String, _description: String) -> Resu
 }
 
 pub fn delete_app(path: PathBuf) -> Result<(), String> {
+    let path_str = path.to_string_lossy().to_string();
+    
+    #[cfg(target_os = "windows")]
+    if path_str.starts_with("REGISTRY::") {
+        // Parse ID from "REGISTRY::HKCU::AppName"
+        let parts: Vec<&str> = path_str.split("::").collect();
+        if parts.len() == 3 {
+            let hive = parts[1];
+            let name = parts[2];
+            
+            let root = if hive == "HKCU" { HKEY_CURRENT_USER } else { HKEY_LOCAL_MACHINE };
+            let hk = RegKey::predef(root);
+            let (key, _) = hk.create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Run").map_err(|e| e.to_string())?;
+            key.delete_value(name).map_err(|e| e.to_string())?;
+            return Ok(());
+        }
+        return Err("Invalid registry path format".to_string());
+    }
+
     fs::remove_file(path).map_err(|e| e.to_string())
 }

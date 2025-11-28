@@ -72,12 +72,51 @@ function renderApps(apps) {
     const info = document.createElement("div");
     info.className = "app-info";
 
+    const header = document.createElement("div");
+    header.className = "app-header";
+
     const name = document.createElement("div");
     name.className = "app-name";
     name.textContent = app.name;
 
-    info.appendChild(name);
-    // Command display removed as per user request
+    header.appendChild(name);
+
+    // Meta tags container
+    const meta = document.createElement("div");
+    meta.className = "app-meta";
+
+    // Location Badge
+    const locationBadge = document.createElement("span");
+    locationBadge.className = "meta-badge location";
+    locationBadge.textContent = app.location || "Startup Folder";
+    locationBadge.title = "Startup Location";
+
+    // Size Badge
+    const sizeBadge = document.createElement("span");
+    sizeBadge.className = "meta-badge size";
+    sizeBadge.textContent = app.size || "Unknown";
+    sizeBadge.title = "File Size";
+
+    // Publisher Badge (Optional, only show if not unknown/system)
+    if (app.publisher && app.publisher !== "Unknown" && app.publisher !== "Linux Desktop Entry") {
+      const pubBadge = document.createElement("span");
+      pubBadge.className = "meta-badge publisher";
+      pubBadge.textContent = app.publisher;
+      meta.appendChild(pubBadge);
+    }
+
+    meta.appendChild(locationBadge);
+    meta.appendChild(sizeBadge);
+
+    // Command (Path) - Make it smaller/subtle
+    const command = document.createElement("div");
+    command.className = "app-command";
+    command.textContent = app.command; // Shows clean path (e.g., /usr/bin/ulauncher)
+    command.title = app.full_command || app.command; // Tooltip shows full command with args
+
+    info.appendChild(header);
+    info.appendChild(meta);
+    info.appendChild(command);
 
     const actions = document.createElement("div");
     actions.className = "app-actions";

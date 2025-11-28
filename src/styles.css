@@ -108,18 +108,70 @@ main {
 
 .app-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+  /* Prevent text overflow */
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .app-name {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.meta-badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+}
+
+.meta-badge.location {
+  color: #a5f3fc;
+  /* Light Cyan */
+  background: rgba(8, 145, 178, 0.15);
+  border-color: rgba(8, 145, 178, 0.2);
+}
+
+.meta-badge.size {
+  color: #e2e8f0;
+  /* Slate 200 */
+}
+
+.meta-badge.publisher {
+  color: #fcd34d;
+  /* Amber 300 */
+  background: rgba(217, 119, 6, 0.15);
+  border-color: rgba(217, 119, 6, 0.2);
 }
 
 .app-command {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
   font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
 }
 
 .app-actions {
