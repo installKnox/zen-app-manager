@@ -27,4 +27,4 @@ walkdir = "2.4"
 dirs = "5.0"
 
 [target.'cfg(windows)'.dependencies]
-winreg = "0.52"
+winreg = "0.55"
