@@ -5417,7 +5417,7 @@ dependencies = [
 
 [[package]]
 name = "zen-app-manager"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "dirs 5.0.1",
  "serde",

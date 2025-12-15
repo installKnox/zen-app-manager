@@ -25,9 +25,11 @@
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/d0ksan8/zen-app-manager/main/screenshots/main.png</image>
+      <caption xml:lang="en">Main application window showing startup entries.</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/d0ksan8/zen-app-manager/main/screenshots/main2.png</image>
+      <caption xml:lang="en">Managing systemd services within the application.</caption>
     </screenshot>
   </screenshots>
   <url type="homepage">https://github.com/d0ksan8/zen-app-manager</url>
@@ -42,6 +44,14 @@
           <li>Improved UI with glassmorphism and resizable window</li>
           <li>Added file size and location indicators</li>
           <li>Fixed various bugs and improved performance</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.3.2" date="2025-12-15">
+      <description>
+        <ul>
+          <li>Updated to version 0.3.2.</li>
+          <li>General improvements and bug fixes.</li>
         </ul>
       </description>
     </release>

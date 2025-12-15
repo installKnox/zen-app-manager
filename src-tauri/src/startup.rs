@@ -22,22 +22,38 @@ pub fn get_startup_apps() -> Vec<StartupApp> {
     if let Some(config_dir) = dirs::config_dir() {
         let autostart_dir = config_dir.join("autostart");
         if autostart_dir.exists() {
-            for entry in WalkDir::new(&autostart_dir).into_iter().filter_map(|e| e.ok()) {
-                if entry.path().extension().map_or(false, |ext| ext == "desktop") {
+            for entry in WalkDir::new(&autostart_dir)
+                .into_iter()
+                .filter_map(|e| e.ok())
+            {
+                if entry
+                    .path()
+                    .extension()
+                    .map_or(false, |ext| ext == "desktop")
+                {
                     if let Ok(content) = fs::read_to_string(entry.path()) {
-                        let name = extract_value(&content, "Name").unwrap_or_else(|| entry.file_name().to_string_lossy().to_string());
+                        let name = extract_value(&content, "Name")
+                            .unwrap_or_else(|| entry.file_name().to_string_lossy().to_string());
                         let raw_command = extract_value(&content, "Exec").unwrap_or_default();
                         let full_command = raw_command
                             .replace("env GDK_BACKEND=x11 ", "")
                             .replace("env ", "");
-                        
+
                         // Extract clean path (first part of command)
-                        let clean_path = full_command.split_whitespace().next().unwrap_or(&full_command).to_string();
+                        let clean_path = full_command
+                            .split_whitespace()
+                            .next()
+                            .unwrap_or(&full_command)
+                            .to_string();
                         let size = get_file_size(std::path::Path::new(&clean_path));
 
-                        let hidden = extract_value(&content, "Hidden").map(|v| v.to_lowercase() == "true").unwrap_or(false);
-                        let x_gnome_enabled = extract_value(&content, "X-GNOME-Autostart-enabled").map(|v| v.to_lowercase() == "true").unwrap_or(true);
-                        
+                        let hidden = extract_value(&content, "Hidden")
+                            .map(|v| v.to_lowercase() == "true")
+                            .unwrap_or(false);
+                        let x_gnome_enabled = extract_value(&content, "X-GNOME-Autostart-enabled")
+                            .map(|v| v.to_lowercase() == "true")
+                            .unwrap_or(true);
+
                         let enabled = !hidden && x_gnome_enabled;
 
                         apps.push(StartupApp {
@@ -69,17 +85,24 @@ pub fn get_startup_apps() -> Vec<StartupApp> {
     let mut apps = Vec::new();
 
     // 1. Check Startup Folder
-    if let Some(startup_dir) = dirs::data_dir().map(|d| d.join("Microsoft\\Windows\\Start Menu\\Programs\\Startup")) {
+    if let Some(startup_dir) =
+        dirs::data_dir().map(|d| d.join("Microsoft\\Windows\\Start Menu\\Programs\\Startup"))
+    {
         if startup_dir.exists() {
-            for entry in WalkDir::new(&startup_dir).into_iter().filter_map(|e| e.ok()) {
-                if entry.path().extension().map_or(false, |ext| ext == "lnk" || ext == "bat" || ext == "cmd" || ext == "exe") {
+            for entry in WalkDir::new(&startup_dir)
+                .into_iter()
+                .filter_map(|e| e.ok())
+            {
+                if entry.path().extension().map_or(false, |ext| {
+                    ext == "lnk" || ext == "bat" || ext == "cmd" || ext == "exe"
+                }) {
                     // For .lnk, we ideally need to resolve target. Without libs, we use the lnk itself or try to guess.
                     // Since we can't easily resolve .lnk without 'lnks' crate or similar (which requires C++ libs sometimes),
                     // we will stick to file size of the shortcut for now OR mark as "Shortcut".
                     // But user wants actual size.
                     // Let's try to be honest: "Shortcut" size is misleading.
                     // If it's a .bat/.cmd/.exe in startup folder, we can get size.
-                    
+
                     let is_shortcut = entry.path().extension().map_or(false, |e| e == "lnk");
                     let size = if is_shortcut {
                         "Shortcut".to_string() // Honest fallback
@@ -89,7 +112,11 @@ pub fn get_startup_apps() -> Vec<StartupApp> {
 
                     apps.push(StartupApp {
                         id: entry.file_name().to_string_lossy().to_string(),
-                        name: entry.file_name().to_string_lossy().replace(".lnk", "").to_string(),
+                        name: entry
+                            .file_name()
+                            .to_string_lossy()
+                            .replace(".lnk", "")
+                            .to_string(),
                         command: entry.path().to_string_lossy().to_string(),
                         full_command: entry.path().to_string_lossy().to_string(),
                         enabled: true,
@@ -109,10 +136,21 @@ pub fn get_startup_apps() -> Vec<StartupApp> {
         for (name, value) in run_key.enum_values().filter_map(|x| x.ok()) {
             let full_command = value.to_string();
             // Clean path: remove quotes and args
-            let clean_path_str = full_command.split('"').nth(1).unwrap_or(&full_command).split_whitespace().next().unwrap_or(&full_command).to_string();
+            let clean_path_str = full_command
+                .split('"')
+                .nth(1)
+                .unwrap_or(&full_command)
+                .split_whitespace()
+                .next()
+                .unwrap_or(&full_command)
+                .to_string();
             let clean_path = PathBuf::from(&clean_path_str);
-            
-            let size = if clean_path.exists() { get_file_size(&clean_path) } else { "Unknown".to_string() };
+
+            let size = if clean_path.exists() {
+                get_file_size(&clean_path)
+            } else {
+                "Unknown".to_string()
+            };
 
             apps.push(StartupApp {
                 id: name.clone(),
@@ -133,10 +171,21 @@ pub fn get_startup_apps() -> Vec<StartupApp> {
     if let Ok(run_key) = hklm.open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Run") {
         for (name, value) in run_key.enum_values().filter_map(|x| x.ok()) {
             let full_command = value.to_string();
-            let clean_path_str = full_command.split('"').nth(1).unwrap_or(&full_command).split_whitespace().next().unwrap_or(&full_command).to_string();
+            let clean_path_str = full_command
+                .split('"')
+                .nth(1)
+                .unwrap_or(&full_command)
+                .split_whitespace()
+                .next()
+                .unwrap_or(&full_command)
+                .to_string();
             let clean_path = PathBuf::from(&clean_path_str);
-            
-            let size = if clean_path.exists() { get_file_size(&clean_path) } else { "Unknown".to_string() };
+
+            let size = if clean_path.exists() {
+                get_file_size(&clean_path)
+            } else {
+                "Unknown".to_string()
+            };
 
             apps.push(StartupApp {
                 id: name.clone(),
@@ -216,7 +265,7 @@ pub fn toggle_app(path: PathBuf, enable: bool) -> Result<(), String> {
     if !hidden_found {
         new_lines.push(format!("Hidden={}", !enable));
     }
-    
+
     if !gnome_enabled_found {
         new_lines.push(format!("X-GNOME-Autostart-enabled={}", enable));
     }
@@ -234,7 +283,7 @@ pub fn toggle_app(path: PathBuf, enable: bool) -> Result<(), String> {
 #[cfg(target_os = "windows")]
 pub fn toggle_app(path: PathBuf, enable: bool) -> Result<(), String> {
     let path_str = path.to_string_lossy().to_string();
-    
+
     // Handle Registry Entries
     if path_str.starts_with("REGISTRY::") {
         // Registry toggling is complex (requires deleting/re-adding value).
@@ -275,16 +324,20 @@ pub fn create_app(name: String, command: String, description: String) -> Result<
         if !autostart_dir.exists() {
             fs::create_dir_all(&autostart_dir).map_err(|e| e.to_string())?;
         }
-        
-        let safe_name = name.replace(" ", "-").replace("/", "-").replace("\\", "-").to_lowercase();
+
+        let safe_name = name
+            .replace(" ", "-")
+            .replace("/", "-")
+            .replace("\\", "-")
+            .to_lowercase();
         let filename = format!("{}.desktop", safe_name);
         let path = autostart_dir.join(filename);
-        
+
         let content = format!(
             "[Desktop Entry]\nType=Application\nName={}\nExec={}\nComment={}\nHidden=false\nX-GNOME-Autostart-enabled=true\n",
             name, command, description
         );
-        
+
         fs::write(path, content).map_err(|e| e.to_string())?;
         Ok(())
     } else {
@@ -294,21 +347,27 @@ pub fn create_app(name: String, command: String, description: String) -> Result<
 
 #[cfg(target_os = "windows")]
 pub fn create_app(name: String, command: String, _description: String) -> Result<(), String> {
-    if let Some(startup_dir) = dirs::data_dir().map(|d| d.join("Microsoft\\Windows\\Start Menu\\Programs\\Startup")) {
-         if !startup_dir.exists() {
+    if let Some(startup_dir) =
+        dirs::data_dir().map(|d| d.join("Microsoft\\Windows\\Start Menu\\Programs\\Startup"))
+    {
+        if !startup_dir.exists() {
             fs::create_dir_all(&startup_dir).map_err(|e| e.to_string())?;
         }
 
-        let safe_name = name.replace(" ", "-").replace("/", "-").replace("\\", "-").to_lowercase();
+        let safe_name = name
+            .replace(" ", "-")
+            .replace("/", "-")
+            .replace("\\", "-")
+            .to_lowercase();
         let filename = format!("{}.bat", safe_name);
         let path = startup_dir.join(filename);
-        
+
         let content = format!("@echo off\nstart \"\" \"{}\"", command);
-        
+
         fs::write(path, content).map_err(|e| e.to_string())?;
         Ok(())
     } else {
-         Err("Could not find startup directory".to_string())
+        Err("Could not find startup directory".to_string())
     }
 }
 
@@ -327,10 +386,14 @@ pub fn delete_app(path: PathBuf) -> Result<(), String> {
             if parts.len() == 3 {
                 let hive = parts[1];
                 let name = parts[2];
-                
-                let root = if hive == "HKCU" { HKEY_CURRENT_USER } else { HKEY_LOCAL_MACHINE };
+
+                let root = if hive == "HKCU" {
+                    HKEY_CURRENT_USER
+                } else {
+                    HKEY_LOCAL_MACHINE
+                };
                 let hk = RegKey::predef(root);
-                
+
                 // Use open_subkey_with_flags instead of create_subkey for better control and intent
                 // KEY_SET_VALUE is required to delete values
                 let key = hk.open_subkey_with_flags("Software\\Microsoft\\Windows\\CurrentVersion\\Run", KEY_SET_VALUE | KEY_QUERY_VALUE)
@@ -355,7 +418,8 @@ pub fn delete_app(path: PathBuf) -> Result<(), String> {
 
     fs::remove_file(path).map_err(|e| {
         if e.kind() == std::io::ErrorKind::PermissionDenied {
-            return "Access Denied: Please run the app as Administrator to delete this file.".to_string();
+            return "Access Denied: Please run the app as Administrator to delete this file."
+                .to_string();
         }
         e.to_string()
     })
