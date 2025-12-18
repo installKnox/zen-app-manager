@@ -14,17 +14,24 @@
 </head>
 
 <body>
-  <div data-tauri-drag-region class="titlebar">
-    <div class="titlebar-title"><span style="color: #00D4FF;">♥</span></div>
+  <div class="titlebar">
+    <div data-tauri-drag-region class="titlebar-title"><span style="color: #00D4FF;">♥</span></div>
     <div class="titlebar-controls">
       <div class="titlebar-button" id="titlebar-minimize">
-        <img src="https://api.iconify.design/mdi:minus.svg?color=white" alt="minimize" />
+        <svg viewBox="0 0 24 24" fill="white" style="width: 16px; height: 16px;">
+          <path d="M19,13H5V11H19V13Z" />
+        </svg>
       </div>
       <div class="titlebar-button" id="titlebar-maximize">
-        <img src="https://api.iconify.design/mdi:window-maximize.svg?color=white" alt="maximize" />
+        <svg viewBox="0 0 24 24" fill="white" style="width: 16px; height: 16px;">
+          <path d="M4,4H20V20H4V4M6,8V18H18V8H6Z" />
+        </svg>
       </div>
       <div class="titlebar-button" id="titlebar-close">
-        <img src="https://api.iconify.design/mdi:close.svg?color=white" alt="close" />
+        <svg viewBox="0 0 24 24" fill="white" style="width: 16px; height: 16px;">
+          <path
+            d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+        </svg>
       </div>
     </div>
   </div>

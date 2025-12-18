@@ -19,7 +19,11 @@
     font-family: var(--title-font);
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.8);
-    pointer-events: none;
+    flex: 1;
+    /* Takes up remaining space for dragging */
+    height: 100%;
+    display: flex;
+    align-items: center;
 }
 
 .titlebar-controls {
@@ -44,9 +48,10 @@
     background: #e81123;
 }
 
-.titlebar-button img {
+.titlebar-button svg {
     width: 16px;
     height: 16px;
+    pointer-events: none;
 }
 
 /* Adjust Header to account for titlebar */

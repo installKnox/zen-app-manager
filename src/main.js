@@ -32,21 +32,8 @@ themeToggleBtn.onclick = () => {
   themeToggleBtn.textContent = isAmoled ? '☀️' : '🌙';
 };
 
-// Manual Drag Implementation for Linux/Wayland compatibility
-const titlebar = document.querySelector('.titlebar');
-
-titlebar.addEventListener('mousedown', (e) => {
-  if (e.target.closest('.titlebar-button')) return;
-  if (e.button === 0 && e.detail === 1) { // Left click only, single click (prevent drag on double click)
-    appWindow.startDragging();
-  }
-});
-
-titlebar.addEventListener('dblclick', async (e) => {
-  if (e.target.closest('.titlebar-button')) return;
-  await appWindow.toggleMaximize();
-  setTimeout(() => appWindow.setFocus(), 50);
-});
+// Manual Drag Implementation removed in favor of data-tauri-drag-region
+// This prevents conflicts with double-click maximizing behavior
 
 const appListEl = document.getElementById("app-list");
 const addBtn = document.getElementById("add-btn");

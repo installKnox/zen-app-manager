@@ -11,7 +11,7 @@ pub struct Service {
 #[tauri::command]
 #[cfg(target_os = "linux")]
 pub fn get_system_services() -> Result<Vec<Service>, String> {
-    let output = Command::new("systemctl")
+    let output = Command::new("/usr/bin/systemctl")
         .arg("list-unit-files")
         .arg("--type=service")
         .arg("--no-pager")
@@ -65,7 +65,7 @@ pub fn toggle_service(name: String, enable: bool) -> Result<(), String> {
     
     // Use pkexec to ask for password securely via GUI
     let output = Command::new("pkexec")
-        .arg("systemctl")
+        .arg("/usr/bin/systemctl")
         .arg(action)
         .arg(&name)
         .output()
