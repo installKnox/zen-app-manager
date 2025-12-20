@@ -8,14 +8,22 @@ pub struct Service {
     pub state: String,
 }
 
+#[allow(dead_code)]
+fn is_flatpak() -> bool {
+    std::path::Path::new("/.flatpak-info").exists()
+}
+
 #[tauri::command]
 #[cfg(target_os = "linux")]
 pub fn get_system_services() -> Result<Vec<Service>, String> {
-    let output = Command::new("/usr/bin/systemctl")
-        .arg("list-unit-files")
-        .arg("--type=service")
-        .arg("--no-pager")
-        .arg("--no-legend")
+    let (program, args) = if is_flatpak() {
+        ("flatpak-spawn", vec!["--host", "systemctl", "list-unit-files", "--type=service", "--no-pager", "--no-legend"])
+    } else {
+        ("/usr/bin/systemctl", vec!["list-unit-files", "--type=service", "--no-pager", "--no-legend"])
+    };
+
+    let output = Command::new(program)
+        .args(args)
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -63,11 +71,15 @@ pub fn get_system_services() -> Result<Vec<Service>, String> {
 pub fn toggle_service(name: String, enable: bool) -> Result<(), String> {
     let action = if enable { "enable" } else { "disable" };
     
+    let (program, args) = if is_flatpak() {
+        ("flatpak-spawn", vec!["--host", "pkexec", "systemctl", action, &name])
+    } else {
+        ("pkexec", vec!["/usr/bin/systemctl", action, &name])
+    };
+
     // Use pkexec to ask for password securely via GUI
-    let output = Command::new("pkexec")
-        .arg("/usr/bin/systemctl")
-        .arg(action)
-        .arg(&name)
+    let output = Command::new(program)
+        .args(args)
         .output()
         .map_err(|e| e.to_string())?;
 
