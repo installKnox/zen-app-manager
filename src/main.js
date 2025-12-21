@@ -1,6 +1,6 @@
 const { invoke } = window.__TAURI__.core;
-const { Window } = window.__TAURI__.window;
-const appWindow = Window.getCurrent();
+const { getCurrentWindow } = window.__TAURI__.window;
+const appWindow = getCurrentWindow();
 
 // Window Controls
 document.getElementById('titlebar-minimize').addEventListener('click', () => appWindow.minimize());
@@ -215,13 +215,17 @@ function renderServices(services) {
       input.type = "checkbox";
       input.checked = service.state === 'enabled';
       input.onchange = async () => {
+        const originalState = input.checked;
         try {
           await invoke("toggle_service", { name: service.name, enable: input.checked });
-          // Refresh to confirm state
-          loadServices();
+          // Update the local state description if needed
+          stateBadge.textContent = input.checked ? 'enabled' : 'disabled';
+          stateBadge.style.color = input.checked ? '#22c55e' : '#94a3b8';
         } catch (err) {
           alert("Failed to toggle service: " + err);
-          input.checked = !input.checked; // Revert
+          input.checked = !originalState; // Revert switch
+          stateBadge.textContent = !originalState ? 'enabled' : 'disabled';
+          stateBadge.style.color = !originalState ? '#22c55e' : '#94a3b8';
         }
       };
 
@@ -340,13 +344,11 @@ if (browseBtn) {
     try {
       // Use Tauri's dialog plugin with correct parameters
       const selected = await invoke('plugin:dialog|open', {
-        options: {
-          multiple: false,
-          filters: [{
-            name: 'Applications',
-            extensions: ['exe', 'lnk', 'sh', 'desktop', 'AppImage', 'bat', 'cmd']
-          }]
-        }
+        multiple: false,
+        filters: [{
+          name: 'Applications',
+          extensions: ['exe', 'lnk', 'sh', 'desktop', 'AppImage', 'bat', 'cmd']
+        }]
       });
 
       if (selected) {

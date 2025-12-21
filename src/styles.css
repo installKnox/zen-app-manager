@@ -133,19 +133,22 @@ main {
 
 .app-card {
   background: var(--card-bg);
-  /* backdrop-filter removed for performance */
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .app-card:hover {
   background: var(--card-hover);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.1), inset 0 0 10px rgba(59, 130, 246, 0.05);
+  transform: translateY(-2px);
 }
 
 .app-info {
@@ -420,4 +423,31 @@ body.amoled-mode .modal-content {
 body.amoled-mode .form-group input {
   background: #111;
   border-color: #333;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  border: 2px solid var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
+
+body.amoled-mode ::-webkit-scrollbar-track {
+  background: #000;
+}
+
+body.amoled-mode ::-webkit-scrollbar-thumb {
+  border-color: #000;
 }
